@@ -3,14 +3,17 @@ import { AudioStream } from './logic/AudioStream';
 import { YoutubeData } from './logic/YoutubeData';
 import { ClientEventHandler } from './events/ClientEventHandler';
 import { Config } from './config';
+import { Queue } from './logic/Queue';
 
 class Bot 
 {
-    config : Config;
+    config : any;
     client : Client;
     constructor() 
     {
-        this.config = new Config();
+        let  fs = require('fs');
+        const jsonData = JSON.parse(fs.readFileSync('./config.json'));
+        this.config = jsonData;
         this.client = new Client
         ({
             intents: 
@@ -24,42 +27,16 @@ class Bot
             GatewayIntentBits.GuildWebhooks, 
             ]
         })
-        let clientEventHandler = new ClientEventHandler(this.client, this.config.prefix);
+        let clientEventHandler = new ClientEventHandler(this.client, this.config.BotOptions.prefix);
         clientEventHandler.Start();
-        this.client.login(this.config.botToken);
+        this.client.login(this.config.BotOptions.token);
+        let queue = Queue.GetInstance();
+        queue.SetConfig(this.config);
     }
     public Start() 
     {
-        //this.CreateStreamFromKeyWord('Toto - Africa');
-    }
-    public CreateConnection() 
-    {
 
     }
-    public ConnectToChannel(channel : any) 
-    {
-
-    }
-    private async CreateStreamFromKeyWord(keyWord: string) 
-    {
-        /*
-        let youtubeData = new YoutubeData();
-        youtubeData.FetchSongByKeyWord(keyWord)
-        .then(song => {
-            let audioStream = new AudioStream(this.config.filter);
-            if(song.videoId != undefined) {
-                audioStream.GetAudioStreamFromSong(song)
-                .then(() => {
-                    console.log('Video downloaded successfully.');
-                })
-                .catch((error) => {
-                    console.error('Error downloading video:', error);
-                  });
-            }
-        })
-        */
-    }
-
 }
 let main = new Bot();
 main.Start();

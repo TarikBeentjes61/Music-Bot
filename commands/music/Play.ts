@@ -32,7 +32,6 @@ export class PlayCommand implements Command
         .then(song => {
             queue.AddSong(song);
             queue.PlayNextSong();
-            console.log(queue);
         })
     }
 

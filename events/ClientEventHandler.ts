@@ -34,7 +34,9 @@ export class ClientEventHandler
             if (!message.content.startsWith(this.prefix)) return;
             const args = message.content.slice(this.prefix.length).trim().split(/ +/g);
             if(this.commands.get(args[0]) == undefined) return;
-            let command : Command | undefined = this.commands.get(args[0].toLowerCase());
+            let commandName = args[0].toLowerCase();
+            let command : Command | undefined = this.commands.get(commandName);
+            message.content = message.content.substring(this.prefix.length+commandName.length);
             if(command != undefined) {
                 command.execute(message);
             }

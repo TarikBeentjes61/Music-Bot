@@ -1,28 +1,33 @@
 import { createAudioResource, AudioResource, createAudioPlayer, VoiceConnection, joinVoiceChannel,
-     JoinVoiceChannelOptions, CreateVoiceConnectionOptions, DiscordGatewayAdapterCreator, AudioPlayer } from "@discordjs/voice";
+     JoinVoiceChannelOptions, CreateVoiceConnectionOptions, DiscordGatewayAdapterCreator, AudioPlayer, generateDependencyReport, StreamType } from "@discordjs/voice";
 import { Song } from "../model/Song";
 import { AudioStream } from "./AudioStream";
 import { Config } from "../config";
-export class Queue {
+import * as fs from 'fs';
+
+export class Queue
+{
 
     private static instance : Queue;
     private songs : Song[];
     private voiceConnection : VoiceConnection | null
     private audioStream : AudioStream | null;
     private currentSong : Song[] | null
-    private currentAudioResource : AudioResource | null;
     private audioPlayer : AudioPlayer;
-    private config : Config;
+    private config : any;
 
     constructor() 
     {
         this.audioPlayer = createAudioPlayer();
-        this.config = new Config();
+        this.config = null;
         this.voiceConnection = null;
         this.audioStream = null;
         this.currentSong = null;
-        this.currentAudioResource = null;
         this.songs = [];
+    }
+    public SetConfig(config : any) 
+    {
+        this.config = config;
     }
     public static GetInstance() : Queue
     {
@@ -31,7 +36,8 @@ export class Queue {
     }
     public CreateConnection(channelId : string, guildId : string, adapterCreator : DiscordGatewayAdapterCreator) 
     {
-        if(!this.voiceConnection) {
+        if(!this.voiceConnection)
+         {
             this.voiceConnection = joinVoiceChannel
             ({
                 channelId: channelId,
@@ -39,15 +45,34 @@ export class Queue {
                 adapterCreator : adapterCreator
             });
         }
+        this.voiceConnection.subscribe(this.audioPlayer);
+        this.voiceConnection.playOpusPacket
     }
     public PlayNextSong() 
     {
-        this.audioStream = new AudioStream(this.config.filter);
+        console.log(generateDependencyReport());
+        this.audioStream = new AudioStream(this.config.ytdlOptions);
         this.audioStream.GetAudioStreamFromSong(this.songs[0])
         .then(() => {
-            let audioResource = createAudioResource('./stream.ffmpeg');
-            this.audioPlayer.play(audioResource);
-        }); 
+            
+            this.PlayStream(createAudioResource(fs.createReadStream(this.config.streamPath), {
+                inputType : StreamType.Arbitrary
+            }));
+        })
+    }
+    private CreatePlayerEvents() 
+    {
+    }
+    private async PlayStream(resource : AudioResource) 
+    {
+        try 
+        {
+            this.audioPlayer.play(resource);
+        } 
+        catch (error : any) 
+        {
+            console.log(error);
+        }
     }
     public AddSong(song : Song) 
     {

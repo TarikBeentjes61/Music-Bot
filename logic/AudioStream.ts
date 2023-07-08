@@ -15,10 +15,8 @@ export class AudioStream
         let url = this.UrlFromSong(song);
         if(this.ValidateUrl(url)) {
 
-            const audioInfo = await ytdl.getInfo(url);
-            const audioFormat = ytdl.chooseFormat(audioInfo.formats, { quality: 'highestaudio' });
-            const audioStream = ytdl(url, { filter: 'audioonly', format: audioFormat });
-            const fileStream = fs.createWriteStream('./stream.ffmpeg');
+            const audioStream = ytdl(url, { filter: this.ytdlOptions.filter});
+            const fileStream = fs.createWriteStream('./stream');
         
             return new Promise<void>((resolve, reject) => {
                 audioStream.pipe(fileStream);
