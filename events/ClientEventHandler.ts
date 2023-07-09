@@ -18,10 +18,6 @@ export class ClientEventHandler
         this.prefix = prefix;
         this.SetupEventListeners(client);
     }
-    public Start() 
-    {
-
-    }
     private SetupEventListeners(client : Client) 
     {
         client.once('ready', () => 
@@ -30,16 +26,23 @@ export class ClientEventHandler
         })
         client.on('messageCreate', (message : Message) => 
         {
-            if (message.author.bot) return;
-            if (!message.content.startsWith(this.prefix)) return;
-            const args = message.content.slice(this.prefix.length).trim().split(/ +/g);
-            if(this.commands.get(args[0]) == undefined) return;
-            let commandName = args[0].toLowerCase();
-            let command : Command | undefined = this.commands.get(commandName);
-            message.content = message.content.substring(this.prefix.length+commandName.length);
-            if(command != undefined) {
-                command.execute(message);
+            if(this.IsMessageValid(message)) 
+            {
+                const args = message.content.slice(this.prefix.length).trim().split(/ +/g);
+                let commandName = args[0].toLowerCase();
+                let command : Command | undefined = this.commands.get(commandName);
+                if(command?.requireArguments && args[1] == null) message.reply('Please provide valid arguments');
+
+                message.content = message.content.substring(this.prefix.length+commandName.length);
+                if(command != undefined) command.execute(message);
             }
         })
+    }
+    private IsMessageValid(message : Message) : boolean 
+    {
+        if (message.author.bot) return false;
+        if (!message.content.startsWith(this.prefix)) return false;
+
+        return true;
     }
 }

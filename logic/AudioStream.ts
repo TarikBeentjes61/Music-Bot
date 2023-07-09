@@ -16,7 +16,7 @@ export class AudioStream
         if(this.ValidateUrl(url)) {
 
             const audioStream = ytdl(url, { filter: this.ytdlOptions.filter});
-            const fileStream = fs.createWriteStream('./stream');
+            const fileStream = fs.createWriteStream('./stream.mp3');
         
             return new Promise<void>((resolve, reject) => {
                 audioStream.pipe(fileStream);

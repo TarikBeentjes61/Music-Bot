@@ -4,5 +4,6 @@ export interface Command
 {
     prefix : string;
     name : string;
+    requireArguments : boolean;
     execute(interaction: Message | null) : any;
 }

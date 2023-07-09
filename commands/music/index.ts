@@ -1,1 +1,1 @@
-export { PlayCommand } from './Play';
+export { PlayCommand } from './play';

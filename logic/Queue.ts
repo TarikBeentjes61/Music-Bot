@@ -1,31 +1,27 @@
 import { createAudioResource, AudioResource, createAudioPlayer, VoiceConnection, joinVoiceChannel,
-     JoinVoiceChannelOptions, CreateVoiceConnectionOptions, DiscordGatewayAdapterCreator, AudioPlayer, generateDependencyReport, StreamType } from "@discordjs/voice";
+    DiscordGatewayAdapterCreator, AudioPlayer, generateDependencyReport, AudioPlayerState, AudioPlayerStatus  } from "@discordjs/voice";
 import { Song } from "../model/Song";
 import { AudioStream } from "./AudioStream";
-import { Config } from "../config";
-import * as fs from 'fs';
 
 export class Queue
 {
-
     private static instance : Queue;
     private songs : Song[];
     private voiceConnection : VoiceConnection | null
-    private audioStream : AudioStream | null;
-    private currentSong : Song[] | null
     private audioPlayer : AudioPlayer;
     private config : any;
+    private state : AudioPlayerStatus
 
     constructor() 
     {
         this.audioPlayer = createAudioPlayer();
         this.config = null;
         this.voiceConnection = null;
-        this.audioStream = null;
-        this.currentSong = null;
         this.songs = [];
+        this.state = AudioPlayerStatus.Idle;
+        this.CreatePlayerEvents();
     }
-    public SetConfig(config : any) 
+    public SetConfig(config : any) : void 
     {
         this.config = config;
     }
@@ -34,7 +30,7 @@ export class Queue
         if(!Queue.instance) { Queue.instance = new Queue(); }
         return Queue.instance;
     }
-    public CreateConnection(channelId : string, guildId : string, adapterCreator : DiscordGatewayAdapterCreator) 
+    public CreateConnection(channelId : string, guildId : string, adapterCreator : DiscordGatewayAdapterCreator) : void 
     {
         if(!this.voiceConnection)
          {
@@ -46,24 +42,33 @@ export class Queue
             });
         }
         this.voiceConnection.subscribe(this.audioPlayer);
-        this.voiceConnection.playOpusPacket
     }
-    public PlayNextSong() 
+    public PlayNextSong() : void 
     {
-        console.log(generateDependencyReport());
-        this.audioStream = new AudioStream(this.config.ytdlOptions);
-        this.audioStream.GetAudioStreamFromSong(this.songs[0])
+        const song = this.songs.shift();
+        if(song == undefined) return;
+        const audioStream = new AudioStream(this.config.ytdlOptions);
+        audioStream.GetAudioStreamFromSong(song)
         .then(() => {
-            
-            this.PlayStream(createAudioResource(fs.createReadStream(this.config.streamPath), {
-                inputType : StreamType.Arbitrary
-            }));
-        })
+            this.PlayStream(createAudioResource('./stream.mp3'));
+        });
     }
-    private CreatePlayerEvents() 
+    private CreatePlayerEvents() : void
     {
+        this.audioPlayer.on(AudioPlayerStatus.Playing, () => {
+            this.state = AudioPlayerStatus.Playing;
+            console.log('Audio player is in the playing state!');
+        });
+        this.audioPlayer.on(AudioPlayerStatus.Idle, () => {
+            this.state = AudioPlayerStatus.Idle;
+            console.log('Audio player is in the idle state!');
+        });
+        this.audioPlayer.on(AudioPlayerStatus.Paused, () => {
+            this.state = AudioPlayerStatus.Paused;
+            console.log('Audio player is in the paused state!');
+        });
     }
-    private async PlayStream(resource : AudioResource) 
+    private PlayStream(resource : AudioResource) 
     {
         try 
         {
@@ -74,28 +79,36 @@ export class Queue
             console.log(error);
         }
     }
-    public AddSong(song : Song) 
+    public AddSong(song : Song) : void 
     {
         this.songs.push(song);
+        if(this.state != AudioPlayerStatus.Playing) this.PlayNextSong();
     }
-    public AddSongs(songs: Song[]) 
+    public AddSongs(songs: Song[]) : void 
     {
         songs.forEach(song => {
             this.songs.push(song);
         });
     }
-    public Skip() 
+    public Skip() : void 
+    {
+        this.audioPlayer.stop();
+        this.PlayNextSong();
+    }
+    public GetSongArray() : Song[]
+    {
+        return this.songs;
+    }
+    public AddSongAtIndex() : void
+    {
+        
+    }
+    public Shuffle() : void
     {
 
     }
-    public AddSongAtIndex() {
-        
-    }
-
-    public Shuffle() {
-
-    }
-    public RemoveAtIndex() {
+    public RemoveAtIndex() : void
+    {
 
     }
 }

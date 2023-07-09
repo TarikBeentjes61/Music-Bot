@@ -28,7 +28,6 @@ class Bot
             ]
         })
         let clientEventHandler = new ClientEventHandler(this.client, this.config.BotOptions.prefix);
-        clientEventHandler.Start();
         this.client.login(this.config.BotOptions.token);
         let queue = Queue.GetInstance();
         queue.SetConfig(this.config);
