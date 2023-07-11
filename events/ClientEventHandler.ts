@@ -1,6 +1,6 @@
 import { Client, Message } from 'discord.js';
 import { Command } from '../model/Command';
-import { PlayCommand, QueueCommand, SkipCommand } from '../commands/index';
+import { ClearCommand, PauseCommand, PlayCommand, PlayingCommand, QueueCommand, RemoveCommand, ShuffleCommand, SkipCommand, SkipToCommand, StopCommand } from '../commands/index';
 
 export class ClientEventHandler
 {
@@ -13,7 +13,14 @@ export class ClientEventHandler
         ([
             ["play", new PlayCommand()],
             ["queue", new QueueCommand()],
-            ["skip", new SkipCommand()]
+            ["skip", new SkipCommand()],
+            ["clear", new ClearCommand()],
+            ["pause", new PauseCommand()],
+            ["playing", new PlayingCommand()],
+            ["remove", new RemoveCommand()],
+            ["stop", new StopCommand()],
+            ["shuffle", new ShuffleCommand()],
+            ["skipto", new SkipToCommand()],
         ]);
         this.prefix = prefix;
         this.SetupEventListeners(client);

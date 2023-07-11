@@ -8,6 +8,7 @@ export class Queue
 {
     private static instance : Queue;
     private songs : Song[];
+    private currentSong : Song | undefined
     private voiceConnection : VoiceConnection | null
     private audioPlayer : AudioPlayer;
     private config : any;
@@ -19,6 +20,7 @@ export class Queue
         this.config = null;
         this.voiceConnection = null;
         this.songs = [];
+        this.currentSong = undefined;
         this.state = AudioPlayerStatus.Idle;
         this.CreatePlayerEvents();
     }
@@ -50,11 +52,10 @@ export class Queue
     }
     public PlayNextSong() : void
     {
-        const song = this.songs.shift();
-        console.log(this.songs);
-        if(song == undefined) return;
+        this.currentSong = this.songs.shift();
+        if(this.currentSong == undefined) return;
         const audioStream = new AudioStream(this.config.ytdlOptions);
-        audioStream.GetAudioStreamFromSong(song)
+        audioStream.GetAudioStreamFromSong(this.currentSong)
         .then((streamResult) => {
             if(streamResult){
                 this.PlayStream(createAudioResource('./stream.mp3'));
@@ -107,21 +108,42 @@ export class Queue
         this.audioPlayer.stop();
         this.PlayNextSong();
     }
+    public Stop() : void 
+    {
+        if(this.state == AudioPlayerStatus.Playing) this.audioPlayer.stop();
+    }
     public GetSongArray() : Song[]
     {
         return this.songs;
-    }
-    public AddSongAtIndex() : void
-    {
-        
     }
     public Shuffle() : void
     {
 
     }
-    public RemoveAtIndex() : void
+    public Clear() : void
     {
-
+        this.songs = [];
+    }
+    public Playing() : Song | undefined
+    {
+        return this.currentSong;
+    }
+    public Pause() : AudioPlayerStatus 
+    {
+        if(this.state == AudioPlayerStatus.Paused) {
+            this.audioPlayer.unpause();
+        }
+        else if(this.state == AudioPlayerStatus.Playing){
+            this.audioPlayer.pause();
+        }
+        return this.state;
+    }
+    public RemoveAtIndex(index : number) : void
+    {
+        index--;
+        if(index < this.songs.length) {
+            this.songs = this.songs.slice(0, index).concat(this.songs.slice(index+1));
+        }
     }
     public IsEmpty() : boolean
     {

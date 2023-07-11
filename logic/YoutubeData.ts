@@ -1,4 +1,5 @@
 import { Song } from "../model/Song";
+import ytdl = require('ytdl-core');
 
 export class YoutubeData 
 {
@@ -9,7 +10,6 @@ export class YoutubeData
         this.key = 'AIzaSyAFrusHdVHWJMhYesAvJGLfe_3u9a4OXQo';
         this.maxResults = 25;
     }
-
     private BuildUrl(keyWord : string) 
     {
         return `https://www.googleapis.com/youtube/v3/search?key=${this.key}&q=${encodeURIComponent(keyWord)}&part=snippet,id&chart=mostPopular&maxResults=${this.maxResults}`;
@@ -17,17 +17,16 @@ export class YoutubeData
     public async FetchSongsByKeyWord(keyWord : string) : Promise<Song[]>
     {
         let url = this.BuildUrl(keyWord);
-        return this.GetSongsFromDataItems(await this.FetchVideoDataByUrl(url));
+        return this.GetSongsFromDataItems(await this.FetchVideoDataByYTDataUrl(url));
     }
     public async FetchSongByKeyWord(keyWord : string) : Promise<any>
     {
         const url = this.BuildUrl(keyWord);
-        console.log(`URL: ${url}`);
-        const song = this.GetSongFromDataItems(await this.FetchVideoDataByUrl(url));
+        const song = this.GetSongFromDataItems(await this.FetchVideoDataByYTDataUrl(url));
         if(song == undefined) return undefined;
         return song;
     }    
-    public async FetchVideoDataByUrl(url : string) : Promise<any>
+    private async FetchVideoDataByYTDataUrl(url : string) : Promise<any>
     {
         let promise = new Promise<any>((resolve, reject) => {
             fetch(url)
