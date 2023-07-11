@@ -1,7 +1,6 @@
-import { Client, Message, Collection } from 'discord.js';
-import { readdirSync } from 'fs';
+import { Client, Message } from 'discord.js';
 import { Command } from '../model/Command';
-import { PlayCommand, PingCommand } from '../commands/index';
+import { PlayCommand, QueueCommand, SkipCommand } from '../commands/index';
 
 export class ClientEventHandler
 {
@@ -13,7 +12,8 @@ export class ClientEventHandler
         this.commands = new Map<string, Command>
         ([
             ["play", new PlayCommand()],
-            ["ping", new PingCommand()]
+            ["queue", new QueueCommand()],
+            ["skip", new SkipCommand()]
         ]);
         this.prefix = prefix;
         this.SetupEventListeners(client);
@@ -31,7 +31,10 @@ export class ClientEventHandler
                 const args = message.content.slice(this.prefix.length).trim().split(/ +/g);
                 let commandName = args[0].toLowerCase();
                 let command : Command | undefined = this.commands.get(commandName);
-                if(command?.requireArguments && args[1] == null) message.reply('Please provide valid arguments');
+                if(command?.requireArguments && args[1] == null) {
+                    message.reply('Please provide valid arguments');
+                    return;
+                }
 
                 message.content = message.content.substring(this.prefix.length+commandName.length);
                 if(command != undefined) command.execute(message);

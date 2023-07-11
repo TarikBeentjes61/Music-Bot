@@ -3,16 +3,10 @@ import { Command } from "../../model/Command";
 
 export class PingCommand implements Command
 {
-    prefix : string;
-    name : string;
     requireArguments : boolean = false;
+    description : string = 'Pings to check the connection'
 
-    constructor() 
-    {
-        this.name = 'Play';
-        this.prefix = '#';
-    }
-    execute(message: Message | null): void
+    execute(message: Message): void
     {
 
     }

@@ -5,19 +5,21 @@ import { Song } from "../../model/Song";
 
 export class QueueCommand implements Command
 {
-    prefix : string;
-    name : string;
     requireArguments : boolean = false;
+    description : string = 'Displays the current queue'
 
-    constructor() 
+    async execute(message: Message): Promise<void>
     {
-        this.name = 'Play';
-        this.prefix = '#';
-    }
-    async execute(message: Message | null): Promise<void>
-    {
-        if(message == null) return;
-        const songs = Queue.GetInstance().GetSongArray();
+        const queue = Queue.GetInstance();
+        if(queue.IsEmpty()) {
+            message.channel.send('Queue is currently empty');
+            return;
+        } 
+        const songs = queue.GetSongArray();
+        const songTitles : string[] = [];
+        songs.forEach(song => {
+            songTitles.push(song.title);
+        });
         const chunkSize = 10;
         const pages = Math.ceil(songs.length / chunkSize);
         const embeds : EmbedBuilder[]= [];
@@ -31,15 +33,16 @@ export class QueueCommand implements Command
             .setTitle("Queue")
             .setDescription
             (
-                songs.slice(startIndex,endIndex).join("\n")
+                songTitles.slice(startIndex,endIndex).join("\n") //-------------------------------
             )
-            .setFooter({text: `Page ${i+1} | Total ${songs.length} songs`
+            .setFooter({text: `Page ${i+1} | Total ${songTitles.length} songs`
         });
             embeds.push(embed);
         }
 
         if (embeds.length === 1) {
             message.channel.send({embeds: [embeds[0]]});
+            return;
         }
 
         const prevButton = new ButtonBuilder()
@@ -93,5 +96,6 @@ export class QueueCommand implements Command
             components: []
         });
     });
+    
     }
 }

@@ -1,8 +1,5 @@
 import { Client, GatewayIntentBits } from 'discord.js';
-import { AudioStream } from './logic/AudioStream';
-import { YoutubeData } from './logic/YoutubeData';
 import { ClientEventHandler } from './events/ClientEventHandler';
-import { Config } from './config';
 import { Queue } from './logic/Queue';
 
 class Bot 

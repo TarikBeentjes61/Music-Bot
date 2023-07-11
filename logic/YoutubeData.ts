@@ -17,14 +17,15 @@ export class YoutubeData
     public async FetchSongsByKeyWord(keyWord : string) : Promise<Song[]>
     {
         let url = this.BuildUrl(keyWord);
-        console.log(`URL: ${url}`);
         return this.GetSongsFromDataItems(await this.FetchVideoDataByUrl(url));
     }
-    public async FetchSongByKeyWord(keyWord : string) : Promise<Song>
+    public async FetchSongByKeyWord(keyWord : string) : Promise<any>
     {
-        let url = this.BuildUrl(keyWord);
+        const url = this.BuildUrl(keyWord);
         console.log(`URL: ${url}`);
-        return this.GetSongFromDataItems(await this.FetchVideoDataByUrl(url));
+        const song = this.GetSongFromDataItems(await this.FetchVideoDataByUrl(url));
+        if(song == undefined) return undefined;
+        return song;
     }    
     public async FetchVideoDataByUrl(url : string) : Promise<any>
     {
@@ -50,9 +51,9 @@ export class YoutubeData
         }
         return songs;
     }
-    private GetSongFromDataItems(data: any) : Song
+    private GetSongFromDataItems(data: any) : Song | undefined
     {
-        if(!this.CheckIfDataIsValid(data)) return new Song();
+        if(!this.CheckIfDataIsValid(data)) return undefined;
         return new Song(data.items[0].snippet.title, data.items[0].id.videoId);
     }
     private CheckIfDataIsValid(data : any) : boolean
