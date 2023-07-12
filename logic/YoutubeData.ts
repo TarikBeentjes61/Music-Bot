@@ -1,5 +1,4 @@
 import { Song } from "../model/Song";
-import ytdl = require('ytdl-core');
 
 export class YoutubeData 
 {
@@ -7,8 +6,9 @@ export class YoutubeData
     maxResults : number;
     constructor()
     {
-        this.key = 'AIzaSyAFrusHdVHWJMhYesAvJGLfe_3u9a4OXQo';
-        this.maxResults = 25;
+        const config = JSON.parse(require('fs').readFileSync('./config.json'));
+        this.key = config.youtubeKey;
+        this.maxResults = 1;
     }
     private BuildUrl(keyWord : string) 
     {

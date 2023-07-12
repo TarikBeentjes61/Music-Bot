@@ -5,24 +5,26 @@ import { Song } from '../model/Song';
 export class AudioStream 
 {
     private ytdlOptions : any;
-    constructor(ytdlOptions : any) 
-    {
-        this.ytdlOptions = ytdlOptions;
-    }
+    private audioStream : any;
 
+    constructor() 
+    {
+        let  fs = require('fs');
+        const config = JSON.parse(fs.readFileSync('./config.json'));
+        this.audioStream = undefined;
+        this.ytdlOptions = config.ytdlOptions;
+    }
     public async GetAudioStreamFromSong(song : Song) : Promise<boolean>
      {
         let url = this.UrlFromSong(song);
         if(this.ValidateUrl(url)) {
-
-            const audioStream = ytdl(url, { filter: this.ytdlOptions.filter});
-            const fileStream = fs.createWriteStream('./stream.mp3');
+            this.audioStream = ytdl(url, { filter: this.ytdlOptions.filter});
             return new Promise<boolean>((resolve, reject) => {
-                audioStream.pipe(fileStream);
-                audioStream.once('data', () => {
-                    resolve(true);
+                this.audioStream.pipe(fs.createWriteStream('./stream.mp3'));
+                this.audioStream.once('data', () => {
+                        resolve(true);
                 });
-                audioStream.on('error', (error : any) => {
+                this.audioStream.on('error', (error : any) => {
                     reject(error);
                 });
             });

@@ -24,15 +24,9 @@ class Bot
             GatewayIntentBits.GuildWebhooks, 
             ]
         })
-        let clientEventHandler = new ClientEventHandler(this.client, this.config.BotOptions.prefix);
+        new ClientEventHandler(this.client, this.config.BotOptions.prefix);
         this.client.login(this.config.BotOptions.token);
-        let queue = Queue.GetInstance();
-        queue.SetConfig(this.config);
-    }
-    public Start() 
-    {
-
+        Queue.GetInstance();
     }
 }
-let main = new Bot();
-main.Start();
+new Bot();

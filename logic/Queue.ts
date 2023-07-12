@@ -11,23 +11,20 @@ export class Queue
     private currentSong : Song | undefined
     private voiceConnection : VoiceConnection | null
     private audioPlayer : AudioPlayer;
-    private config : any;
+    private audioStream : AudioStream;
     public state : AudioPlayerStatus
 
     constructor() 
     {
         this.audioPlayer = createAudioPlayer();
-        this.config = null;
+        this.audioStream = new AudioStream();
         this.voiceConnection = null;
         this.songs = [];
         this.currentSong = undefined;
-        this.state = AudioPlayerStatus.Idle;
         this.CreatePlayerEvents();
+        this.state = AudioPlayerStatus.Idle;
     }
-    public SetConfig(config : any) : void 
-    {
-        this.config = config;
-    }
+
     public static GetInstance() : Queue
     {
         if(!Queue.instance) { Queue.instance = new Queue(); }
@@ -54,13 +51,14 @@ export class Queue
     {
         this.currentSong = this.songs.shift();
         if(this.currentSong == undefined) return;
-        const audioStream = new AudioStream(this.config.ytdlOptions);
-        audioStream.GetAudioStreamFromSong(this.currentSong)
+        this.audioStream.GetAudioStreamFromSong(this.currentSong)
         .then((streamResult) => {
-            if(streamResult){
+            if(streamResult)
+            {
                 this.PlayStream(createAudioResource('./stream.mp3'));
             }
-            else {
+            else 
+            {
                 console.log('Something went wrong with the stream');
             }
         });
@@ -80,6 +78,9 @@ export class Queue
             this.state = AudioPlayerStatus.Paused;
             console.log('Audio player is in the paused state!');
         });
+        this.audioPlayer.on("error", error => {
+            console.log(error);
+        })
     }
     private PlayStream(resource : AudioResource) 
     {
@@ -108,6 +109,16 @@ export class Queue
         this.audioPlayer.stop();
         this.PlayNextSong();
     }
+    public SkipTo(index : number) : void
+    {
+        const firstSong = this.songs[0];
+        const nextSong = this.songs[index];
+
+        this.songs[0] = nextSong;
+        this.songs[index] = firstSong;
+        this.PlayNextSong();
+
+    }
     public Stop() : void 
     {
         if(this.state == AudioPlayerStatus.Playing) this.audioPlayer.stop();
@@ -118,7 +129,19 @@ export class Queue
     }
     public Shuffle() : void
     {
+        let copySongs : Song[] = [];
+        let length = copySongs.length;
+        while(length)
+        {
+            const i = Math.floor((Math.random() * this.songs.length));
 
+            if(i in copySongs) {
+                copySongs.push(this.songs[i]);
+                delete this.songs[i];
+                length--;
+            }
+        }
+        this.songs = copySongs;
     }
     public Clear() : void
     {
