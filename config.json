@@ -1,6 +1,6 @@
 {
 	"youtubeDataApiKey" : "AIzaSyAFrusHdVHWJMhYesAvJGLfe_3u9a4OXQo",
-	"streamPath" : "./stream.ogg",
+	"streamPath" : "./stream.webm",
 	"BotOptions" : 
 	{
 		"prefix" : "#", 

@@ -4,29 +4,31 @@ import { Song } from '../model/Song';
 
 export class AudioStream 
 {
-    private ytdlOptions : any;
     private audioStream : any;
+    private writeStream : any;
 
     constructor() 
     {
-        let  fs = require('fs');
-        const config = JSON.parse(fs.readFileSync('./config.json'));
         this.audioStream = undefined;
-        this.ytdlOptions = config.ytdlOptions;
+        this.writeStream = undefined;
     }
     public async GetAudioStreamFromSong(song : Song) : Promise<boolean>
      {
         let url = this.UrlFromSong(song);
+        this.CancelStream();
+        this.audioStream = ytdl(url, {filter: 'audioonly'});        
+        this.writeStream = fs.createWriteStream('./stream.mp3');
+        let chunks = 0;
         if(this.ValidateUrl(url)) {
-            this.audioStream = ytdl(url, { filter: this.ytdlOptions.filter});
-            let chunks = 0;
             return new Promise<boolean>((resolve, reject) => {
-                this.audioStream.pipe(fs.createWriteStream('./stream.mp3'));
+                let startTime : number;
+                this.audioStream.pipe(this.writeStream);
                 this.audioStream.on('data', () => {
-                    chunks++;
-                    console.log(chunks);
-                    if(chunks > 20) {
+                    if(chunks > 15) {
                         resolve(true);
+                    } else {
+                        chunks++;
+                        console.log(chunks);
                     }
                 });
                 this.audioStream.on('error', (error : any) => {
@@ -42,6 +44,13 @@ export class AudioStream
     }
     private ValidateUrl(url : string) {
         return ytdl.validateURL(url);
+    }
+    private CancelStream() 
+    {
+        if(this.audioStream != undefined && this.writeStream != undefined) {
+            this.audioStream.destroy();
+            this.writeStream.destroy();
+        }
     }
 }
 

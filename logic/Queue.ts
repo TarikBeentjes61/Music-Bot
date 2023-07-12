@@ -1,5 +1,5 @@
 import { createAudioResource, AudioResource, createAudioPlayer, VoiceConnection, joinVoiceChannel,
-    DiscordGatewayAdapterCreator, AudioPlayer, AudioPlayerStatus  } from "@discordjs/voice";
+    DiscordGatewayAdapterCreator, AudioPlayer, AudioPlayerStatus } from "@discordjs/voice";
 import { Song } from "../model/Song";
 import { AudioStream } from "./AudioStream";
 import { Message } from "discord.js";
