@@ -61,6 +61,9 @@ export class Queue
             {
                 console.log('Something went wrong with the stream');
             }
+        })
+        .catch(exception => {
+            console.log(exception);
         });
     }
     private CreatePlayerEvents() : void

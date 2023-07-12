@@ -7,7 +7,7 @@ export class YoutubeData
     constructor()
     {
         const config = JSON.parse(require('fs').readFileSync('./config.json'));
-        this.key = config.youtubeKey;
+        this.key = config.youtubeDataApiKey;
         this.maxResults = 1;
     }
     private BuildUrl(keyWord : string) 

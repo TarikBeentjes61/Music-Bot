@@ -29,4 +29,4 @@ class Bot
         Queue.GetInstance();
     }
 }
-new Bot();
+const bot = new Bot();

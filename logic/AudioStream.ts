@@ -19,10 +19,15 @@ export class AudioStream
         let url = this.UrlFromSong(song);
         if(this.ValidateUrl(url)) {
             this.audioStream = ytdl(url, { filter: this.ytdlOptions.filter});
+            let chunks = 0;
             return new Promise<boolean>((resolve, reject) => {
                 this.audioStream.pipe(fs.createWriteStream('./stream.mp3'));
-                this.audioStream.once('data', () => {
+                this.audioStream.on('data', () => {
+                    chunks++;
+                    console.log(chunks);
+                    if(chunks > 20) {
                         resolve(true);
+                    }
                 });
                 this.audioStream.on('error', (error : any) => {
                     reject(error);
