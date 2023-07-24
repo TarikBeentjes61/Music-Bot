@@ -67,6 +67,7 @@ export class Queue
     {
         this.voiceConnection?.disconnect();
         this.voiceConnection?.destroy();
+        this.audioStream.destroy();
         const guildId = this.guildId;
         fs.stat(`./activestreams/stream${guildId}.mp3`, function (err, stats) {
             if (err) {

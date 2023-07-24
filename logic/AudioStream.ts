@@ -14,6 +14,10 @@ export class AudioStream
         this.writeStream = undefined;
         this.guildId = guildId;
     }
+    public destroy() {
+        this.audioStream = undefined;
+        this.writeStream = undefined;
+    }
     public async GetAudioStreamFromSong(song : Song) : Promise<boolean>
      {
         let url = this.UrlFromSong(song);
