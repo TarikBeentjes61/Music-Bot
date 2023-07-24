@@ -6,29 +6,29 @@ export class AudioStream
 {
     private audioStream : any;
     private writeStream : any;
+    private guildId : any;
 
-    constructor() 
+    constructor(guildId : string) 
     {
         this.audioStream = undefined;
         this.writeStream = undefined;
+        this.guildId = guildId;
     }
     public async GetAudioStreamFromSong(song : Song) : Promise<boolean>
      {
         let url = this.UrlFromSong(song);
         this.CancelStream();
         this.audioStream = ytdl(url, {filter: 'audioonly'});        
-        this.writeStream = fs.createWriteStream('./stream.mp3');
+        this.writeStream = fs.createWriteStream(`./activestreams/stream${this.guildId}.mp3`);
         let chunks = 0;
         if(this.ValidateUrl(url)) {
             return new Promise<boolean>((resolve, reject) => {
-                let startTime : number;
                 this.audioStream.pipe(this.writeStream);
                 this.audioStream.on('data', () => {
-                    if(chunks > 15) {
+                    if(chunks > 20) {
                         resolve(true);
                     } else {
                         chunks++;
-                        console.log(chunks);
                     }
                 });
                 this.audioStream.on('error', (error : any) => {

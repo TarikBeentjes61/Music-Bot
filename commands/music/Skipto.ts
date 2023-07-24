@@ -1,6 +1,6 @@
 import { Message } from "discord.js";
 import { Command } from "../../model/Command";
-import { Queue } from '../../logic/Queue'
+import { QueueManager } from '../../logic/QueueManager'
 
 export class SkipToCommand implements Command
 {
@@ -9,7 +9,9 @@ export class SkipToCommand implements Command
 
     execute(message: Message): void
     {
-        const queue = Queue.GetInstance();
+        if(message.guildId == null) return;
+        const queue = QueueManager.GetInstance().GetQueueByGuildId(message.guildId);
+        if(queue == undefined) return;
         const index = parseInt(message.content);
         if(index > queue.GetSongArray().length) {
             message.reply('Given number is too big for the queue');

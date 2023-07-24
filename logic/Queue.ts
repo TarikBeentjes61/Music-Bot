@@ -3,32 +3,28 @@ import { createAudioResource, AudioResource, createAudioPlayer, VoiceConnection,
 import { Song } from "../model/Song";
 import { AudioStream } from "./AudioStream";
 import { Message } from "discord.js";
+import { QueueManager } from "./QueueManager";
 
 export class Queue
 {
-    private static instance : Queue;
+    private guildId : string;
     private songs : Song[];
     private currentSong : Song | undefined
-    private voiceConnection : VoiceConnection | null
+    private voiceConnection : VoiceConnection | undefined
     private audioPlayer : AudioPlayer;
     private audioStream : AudioStream;
     public state : AudioPlayerStatus
 
-    constructor() 
+    constructor(guildId : string) 
     {
+        this.guildId = guildId;
         this.audioPlayer = createAudioPlayer();
-        this.audioStream = new AudioStream();
-        this.voiceConnection = null;
+        this.audioStream = new AudioStream(guildId);
+        this.voiceConnection = undefined;
         this.songs = [];
         this.currentSong = undefined;
         this.CreatePlayerEvents();
         this.state = AudioPlayerStatus.Idle;
-    }
-
-    public static GetInstance() : Queue
-    {
-        if(!Queue.instance) { Queue.instance = new Queue(); }
-        return Queue.instance;
     }
     public CreateConnectionFromMessage(message : Message) : void 
     {
@@ -50,12 +46,15 @@ export class Queue
     public PlayNextSong() : void
     {
         this.currentSong = this.songs.shift();
-        if(this.currentSong == undefined) return;
+        if(this.currentSong == undefined) {
+            this.DestroyQueue();
+            return;
+        }
         this.audioStream.GetAudioStreamFromSong(this.currentSong)
         .then((streamResult) => {
             if(streamResult)
             {
-                this.PlayStream(createAudioResource('./stream.mp3'));
+                this.PlayStream(createAudioResource(`./activestreams/stream${this.guildId}.mp3`));
             }
             else 
             {
@@ -66,24 +65,25 @@ export class Queue
             console.log(exception);
         });
     }
+    public DestroyQueue() 
+    {
+        QueueManager.GetInstance().DeleteQueueByGuildId(this.guildId);
+    }
     private CreatePlayerEvents() : void
     {
         this.audioPlayer.on(AudioPlayerStatus.Playing, () => {
             this.state = AudioPlayerStatus.Playing;
-            console.log('Audio player is in the playing state!');
         });
         this.audioPlayer.on(AudioPlayerStatus.Idle, () => {
             this.state = AudioPlayerStatus.Idle;
-            console.log('Audio player is in the idle state!');
             this.PlayNextSong();
         });
         this.audioPlayer.on(AudioPlayerStatus.Paused, () => {
             this.state = AudioPlayerStatus.Paused;
-            console.log('Audio player is in the paused state!');
         });
         this.audioPlayer.on("error", error => {
             console.log(error);
-        })
+        });
     }
     private PlayStream(resource : AudioResource) 
     {
@@ -120,7 +120,6 @@ export class Queue
         this.songs[0] = nextSong;
         this.songs[index] = firstSong;
         this.PlayNextSong();
-
     }
     public Stop() : void 
     {

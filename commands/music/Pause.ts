@@ -1,6 +1,6 @@
 import { Message } from "discord.js";
 import { Command } from "../../model/Command";
-import { Queue } from '../../logic/Queue'
+import { QueueManager } from '../../logic/QueueManager'
 
 export class PauseCommand implements Command
 {
@@ -9,7 +9,10 @@ export class PauseCommand implements Command
 
     execute(message: Message): void
     {
-        const state = Queue.GetInstance().Pause();
+        if(message.guildId == null) return;
+        const queue = QueueManager.GetInstance().GetQueueByGuildId(message.guildId);
+        if(queue == undefined) return;
+        const state = queue.Pause();
         message.channel.send(`Player succesfully ${state}`)
     }
 }

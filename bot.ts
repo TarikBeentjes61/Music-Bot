@@ -1,6 +1,7 @@
 import { Client, GatewayIntentBits } from 'discord.js';
 import { ClientEventHandler } from './events/ClientEventHandler';
 import { Queue } from './logic/Queue';
+import { QueueManager } from './logic/QueueManager';
 
 class Bot 
 {
@@ -26,7 +27,7 @@ class Bot
         })
         new ClientEventHandler(this.client, this.config.BotOptions.prefix);
         this.client.login(this.config.BotOptions.token);
-        Queue.GetInstance();
+        QueueManager.GetInstance();
     }
 }
 const bot = new Bot();

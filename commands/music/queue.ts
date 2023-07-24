@@ -1,7 +1,6 @@
-import { ActionRow, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, Message } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, Message } from "discord.js";
 import { Command } from "../../model/Command";
-import { Queue } from '../../logic/Queue'
-import { Song } from "../../model/Song";
+import { QueueManager } from '../../logic/QueueManager'
 
 export class QueueCommand implements Command
 {
@@ -10,7 +9,9 @@ export class QueueCommand implements Command
 
     async execute(message: Message): Promise<void>
     {
-        const queue = Queue.GetInstance();
+        if(message.guildId == null) return;
+        const queue = QueueManager.GetInstance().GetQueueByGuildId(message.guildId);
+        if(queue == undefined) return;
         if(queue.IsEmpty()) {
             message.channel.send('Queue is currently empty');
             return;

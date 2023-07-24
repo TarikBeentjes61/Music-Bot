@@ -1,7 +1,8 @@
 import { Message } from "discord.js";
 import { Command } from "../../model/Command";
-import { Queue } from '../../logic/Queue'
+import { QueueManager } from '../../logic/QueueManager'
 import { YoutubeData } from "../../logic/YoutubeData";
+import { Queue } from "../../logic/Queue";
 
 export class PlayCommand implements Command
 {
@@ -10,6 +11,13 @@ export class PlayCommand implements Command
 
     execute(message: Message): void
     {
+        const queueManager = QueueManager.GetInstance();
+        if(message.guildId == null) return;
+        if(!queueManager.HasQueueByGuildId(message.guildId)) {
+            queueManager.AddNewQueueByGuildId(message.guildId);
+        }
+        const queue = queueManager.GetQueueByGuildId(message.guildId);
+        if(queue == undefined) return;
         if(message.member?.voice.channelId == null) {
             message.reply("U are not currently in a voice channel");
             return;
@@ -17,18 +25,18 @@ export class PlayCommand implements Command
         switch(this.GetArgumentType(message.content)) 
         {
             case 'youtube' : 
-                this.PlaySongFromMessage(message);
+                this.PlaySongFromMessageAndQueue(message, queue);
                 break;
             case 'spotify' : 
                  break;
             case 'default' :
-                this.PlaySongFromMessage(message);
+                this.PlaySongFromMessageAndQueue(message, queue);
                 break;
         }
     }
-    private PlaySongFromMessage(message : Message) 
+    private PlaySongFromMessageAndQueue(message : Message, queue : Queue) 
     {
-        let queue = Queue.GetInstance();
+        if(queue == undefined) return;
         queue.CreateConnectionFromMessage(message);
         new YoutubeData().FetchSongByKeyWord(`${message.content}`)
         .then(song => {
