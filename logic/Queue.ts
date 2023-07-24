@@ -4,6 +4,7 @@ import { Song } from "../model/Song";
 import { AudioStream } from "./AudioStream";
 import { Message } from "discord.js";
 import { QueueManager } from "./QueueManager";
+import * as fs from 'fs';
 
 export class Queue
 {
@@ -46,10 +47,7 @@ export class Queue
     public PlayNextSong() : void
     {
         this.currentSong = this.songs.shift();
-        if(this.currentSong == undefined) {
-            this.DestroyQueue();
-            return;
-        }
+        if(this.currentSong == undefined) return;
         this.audioStream.GetAudioStreamFromSong(this.currentSong)
         .then((streamResult) => {
             if(streamResult)
@@ -67,7 +65,18 @@ export class Queue
     }
     public DestroyQueue() 
     {
-        QueueManager.GetInstance().DeleteQueueByGuildId(this.guildId);
+        this.voiceConnection?.disconnect();
+        this.voiceConnection?.destroy();
+        const guildId = this.guildId;
+        fs.stat(`./activestreams/stream${guildId}.mp3`, function (err, stats) {
+            if (err) {
+                return console.error(err);
+            }
+            fs.unlink(`./activestreams/stream${guildId}.mp3`,function(err){
+                 if(err) return console.log(err);
+            });  
+         });
+        QueueManager.GetInstance().DeleteQueueByGuildId(guildId);
     }
     private CreatePlayerEvents() : void
     {
@@ -77,6 +86,9 @@ export class Queue
         this.audioPlayer.on(AudioPlayerStatus.Idle, () => {
             this.state = AudioPlayerStatus.Idle;
             this.PlayNextSong();
+            if(this.currentSong == undefined && this.IsEmpty()) {
+                this.DestroyQueue();
+            }
         });
         this.audioPlayer.on(AudioPlayerStatus.Paused, () => {
             this.state = AudioPlayerStatus.Paused;
@@ -110,7 +122,6 @@ export class Queue
     public Skip() : void 
     {
         this.audioPlayer.stop();
-        this.PlayNextSong();
     }
     public SkipTo(index : number) : void
     {
@@ -119,7 +130,7 @@ export class Queue
 
         this.songs[0] = nextSong;
         this.songs[index] = firstSong;
-        this.PlayNextSong();
+        this.audioPlayer.stop();
     }
     public Stop() : void 
     {
