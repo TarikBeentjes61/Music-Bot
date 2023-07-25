@@ -15,8 +15,10 @@ export class SkipCommand implements Command
         if(queue == undefined) return;
         if(queue.state != AudioPlayerStatus.Playing) {
             message.reply('There is no song currently playing');
-            return;
         }
-        queue.Skip();
+        else {
+            message.reply(`Skipped ${queue.Playing()?.title}`);
+            queue.Skip();
+        }
     }
 }

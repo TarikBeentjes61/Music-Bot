@@ -18,6 +18,7 @@ export class PlayCommand implements Command
         }
         const queue = queueManager.GetQueueByGuildId(message.guildId);
         if(queue == undefined) return;
+        queue.SetMessageChannel(message.channel);
         if(message.member?.voice.channelId == null) {
             message.reply("U are not currently in a voice channel");
             return;
@@ -37,13 +38,13 @@ export class PlayCommand implements Command
     private PlaySongFromMessageAndQueue(message : Message, queue : Queue) 
     {
         if(queue == undefined) return;
-        queue.CreateConnectionFromMessage(message);
         new YoutubeData().FetchSongByKeyWord(`${message.content}`)
         .then(song => {
             if(song == undefined) {
                 message.reply('Song could not be found');
             }
             else {
+                queue.CreateConnectionFromMessage(message);
                 message.channel.send(`Added ${song.title} to the queue`);
                 queue.AddSong(song);
             }

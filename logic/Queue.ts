@@ -9,6 +9,7 @@ import * as fs from 'fs';
 export class Queue
 {
     private guildId : string;
+    private guildChannel : any;
     private songs : Song[];
     private currentSong : Song | undefined
     private voiceConnection : VoiceConnection | undefined
@@ -19,6 +20,7 @@ export class Queue
     constructor(guildId : string) 
     {
         this.guildId = guildId;
+        this.guildChannel = undefined;
         this.audioPlayer = createAudioPlayer();
         this.audioStream = new AudioStream(guildId);
         this.voiceConnection = undefined;
@@ -26,6 +28,9 @@ export class Queue
         this.currentSong = undefined;
         this.CreatePlayerEvents();
         this.state = AudioPlayerStatus.Idle;
+    }
+    public SetMessageChannel(channel : any) {
+        this.guildChannel = channel;
     }
     public CreateConnectionFromMessage(message : Message) : void 
     {
@@ -53,6 +58,7 @@ export class Queue
             if(streamResult)
             {
                 this.PlayStream(createAudioResource(`./activestreams/stream${this.guildId}.mp3`));
+                this.SendStartedPlayingMessage();
             }
             else 
             {
@@ -63,11 +69,19 @@ export class Queue
             console.log(exception);
         });
     }
+    private SendStartedPlayingMessage() {
+        if(this.guildChannel != undefined && this.currentSong != undefined) {
+            this.guildChannel.send(`Started playing ${this.currentSong.title}`);
+        }
+    }
     public DestroyQueue() 
     {
         this.voiceConnection?.disconnect();
         this.voiceConnection?.destroy();
-        this.audioStream.destroy();
+        this.audioStream.CancelStream();
+        QueueManager.GetInstance().DeleteQueueByGuildId(this.guildId);
+    }
+    private DestroyStreamFile() {
         const guildId = this.guildId;
         fs.stat(`./activestreams/stream${guildId}.mp3`, function (err, stats) {
             if (err) {
@@ -77,7 +91,6 @@ export class Queue
                  if(err) return console.log(err);
             });  
          });
-        QueueManager.GetInstance().DeleteQueueByGuildId(guildId);
     }
     private CreatePlayerEvents() : void
     {
@@ -143,19 +156,18 @@ export class Queue
     }
     public Shuffle() : void
     {
-        let copySongs : Song[] = [];
-        let length = copySongs.length;
-        while(length)
-        {
-            const i = Math.floor((Math.random() * this.songs.length));
+        let songs = this.songs;
+        let length = this.songs.length;
+        let index : number;
+        let storedElement : Song;
 
-            if(i in copySongs) {
-                copySongs.push(this.songs[i]);
-                delete this.songs[i];
-                length--;
-            }
+        while(length) {
+            index = Math.floor(Math.random() * length--);
+            storedElement = songs[length];
+            songs[length] = songs[index];
+            songs[index] = storedElement;
         }
-        this.songs = copySongs;
+        this.songs = songs;
     }
     public Clear() : void
     {

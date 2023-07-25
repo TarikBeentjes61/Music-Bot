@@ -14,12 +14,10 @@ export class AudioStream
         this.writeStream = undefined;
         this.guildId = guildId;
     }
-    public destroy() {
-        this.audioStream = undefined;
-        this.writeStream = undefined;
-    }
     public async GetAudioStreamFromSong(song : Song) : Promise<boolean>
      {
+        const controller = new AbortController();
+        const signal = controller.signal;
         let url = this.UrlFromSong(song);
         this.CancelStream();
         this.audioStream = ytdl(url, {filter: 'audioonly'});        
@@ -49,7 +47,7 @@ export class AudioStream
     private ValidateUrl(url : string) {
         return ytdl.validateURL(url);
     }
-    private CancelStream() 
+    public CancelStream() 
     {
         if(this.audioStream != undefined && this.writeStream != undefined) {
             this.audioStream.destroy();

@@ -1,6 +1,5 @@
 import { Client, GatewayIntentBits } from 'discord.js';
 import { ClientEventHandler } from './events/ClientEventHandler';
-import { Queue } from './logic/Queue';
 import { QueueManager } from './logic/QueueManager';
 
 class Bot 

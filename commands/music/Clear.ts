@@ -13,7 +13,12 @@ export class ClearCommand implements Command
         const queue = QueueManager.GetInstance().GetQueueByGuildId(message.guildId);
         if(queue == undefined) return;
         const songAmount = queue.GetSongArray().length;
-        queue.Clear();
-        message.channel.send(`Removed ${songAmount} songs from the queue`);
+        if(songAmount == 0) {
+            message.channel.send('Queue is currently empty');
+        }
+        else {
+            queue.Clear();
+            message.channel.send(`Removed ${songAmount} songs from the queue`);
+        }
     }
 }

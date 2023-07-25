@@ -1,6 +1,7 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, Message } from "discord.js";
 import { Command } from "../../model/Command";
 import { QueueManager } from '../../logic/QueueManager'
+import { Queue } from "../../logic/Queue";
 
 export class QueueCommand implements Command
 {
@@ -16,36 +17,11 @@ export class QueueCommand implements Command
             message.channel.send('Queue is currently empty');
             return;
         } 
-        const songs = queue.GetSongArray();
-        const songTitles : string[] = [];
-        songs.forEach(song => {
-            songTitles.push(song.title);
-        });
-        const chunkSize = 10;
-        const pages = Math.ceil(songs.length / chunkSize);
-        const embeds : EmbedBuilder[]= [];
-
-        for(let i =0; i < pages; i++) 
-        {
-            const startIndex = i*chunkSize;
-            const endIndex = startIndex+chunkSize;
-            const embed = new EmbedBuilder()
-            .setColor("Red")
-            .setTitle("Queue")
-            .setDescription
-            (
-                songTitles.slice(startIndex,endIndex).join("\n") //-------------------------------
-            )
-            .setFooter({text: `Page ${i+1} | Total ${songTitles.length} songs`
-        });
-            embeds.push(embed);
-        }
-
+        const embeds = this.CreateEmbedsFromQueue(queue);
         if (embeds.length === 1) {
             message.channel.send({embeds: [embeds[0]]});
             return;
         }
-
         const prevButton = new ButtonBuilder()
             .setCustomId("Previous")
             .setLabel("Previous")
@@ -97,6 +73,34 @@ export class QueueCommand implements Command
             components: []
         });
     });
-    
+    }
+
+    private CreateEmbedsFromQueue(queue : Queue) : EmbedBuilder[]
+    {
+        const songs = queue.GetSongArray();
+        const songTitles : string[] = [];
+        songs.forEach(song => {
+            songTitles.push(song.title);
+        });
+        const chunkSize = 10;
+        const pages = Math.ceil(songs.length / chunkSize);
+        const embeds : EmbedBuilder[]= [];
+
+        for(let i =0; i < pages; i++) 
+        {
+            const startIndex = i*chunkSize;
+            const endIndex = startIndex+chunkSize;
+            const embed = new EmbedBuilder()
+            .setColor("Red")
+            .setTitle("Queue")
+            .setDescription
+            (
+                songTitles.slice(startIndex,endIndex).join("\n") //-------------------------------
+            )
+            .setFooter({text: `Page ${i+1} | Total ${songTitles.length} songs`
+        });
+            embeds.push(embed);
+        }
+        return embeds;
     }
 }
