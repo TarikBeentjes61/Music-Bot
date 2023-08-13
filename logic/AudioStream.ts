@@ -16,8 +16,6 @@ export class AudioStream
     }
     public async GetAudioStreamFromSong(song : Song) : Promise<boolean>
      {
-        const controller = new AbortController();
-        const signal = controller.signal;
         let url = this.UrlFromSong(song);
         this.CancelStream();
         this.audioStream = ytdl(url, {filter: 'audioonly'});        
