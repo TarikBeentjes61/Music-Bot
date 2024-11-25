@@ -1,11 +1,11 @@
 {
-	"youtubeDataApiKey" : "AIzaSyAFrusHdVHWJMhYesAvJGLfe_3u9a4OXQo",
+	"youtubeDataApiKey" : "",
 	"activestreamsPath" : "./activestreams/",
 	"BotOptions" : 
 	{
 		"prefix" : "#", 
-		"token" : "MTEyNjkyMzM5MjA1NTAwMTIyOA.G6ZjE6.4OelzPk-adQbb-iOX7PM5E-KqSkKCCN39nzgGg",
-		"playingMessage" : "Barry its me"
+		"token" : "",
+		"playingMessage" : ""
 	},
 	"ytdlOptions" : 
 	{
